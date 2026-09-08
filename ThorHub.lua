@@ -5,28 +5,55 @@
 ]]
 
 -- =========================================
--- URL CONFIGURATION
+-- BASE URL
 -- =========================================
 
-local BASE_URL = "https://raw.githubusercontent.com/lugasnugroho/ThorHub/main/"
-
-local ConfigURL = BASE_URL .. "Config.lua"
-local GameListURL = BASE_URL .. "GameList.lua"
-local UtilsURL = BASE_URL .. "Modules/Utils.lua"
-local UIURL = BASE_URL .. "Modules/UI.lua"
+local BASE_URL =
+    "https://raw.githubusercontent.com/lugasnugroho/ThorHub/main/"
 
 
 -- =========================================
--- HELPER
+-- REMOTE FILES
+-- =========================================
+
+local ConfigURL =
+    BASE_URL .. "Config.lua"
+
+local GameListURL =
+    BASE_URL .. "GameList.lua"
+
+local UtilsURL =
+    BASE_URL .. "Modules/Utils.lua"
+
+local UIURL =
+    BASE_URL .. "Modules/UI.lua"
+
+local DashboardURL =
+    BASE_URL .. "Modules/Dashboard.lua"
+
+
+-- =========================================
+-- REMOTE LOADER
 -- =========================================
 
 local function LoadRemote(URL)
+
     local Success, Result = pcall(function()
+
         local Source = game:HttpGet(URL)
-        return loadstring(Source)()
+
+        local Chunk = loadstring(Source)
+
+        if not Chunk then
+            error("Source bukan Lua yang valid.")
+        end
+
+        return Chunk()
+
     end)
 
     if not Success then
+
         warn("❌ Gagal memuat:")
         warn(URL)
         warn(Result)
@@ -50,7 +77,7 @@ print("")
 
 
 -- =========================================
--- LOAD CONFIG
+-- CONFIG
 -- =========================================
 
 print("📦 Loading Config...")
@@ -67,7 +94,7 @@ print("")
 
 
 -- =========================================
--- LOAD UTILS
+-- UTILS
 -- =========================================
 
 print("📦 Loading Utils...")
@@ -84,7 +111,7 @@ print("")
 
 
 -- =========================================
--- LOAD UI
+-- UI
 -- =========================================
 
 print("📦 Loading UI...")
@@ -101,6 +128,23 @@ print("")
 
 
 -- =========================================
+-- DASHBOARD
+-- =========================================
+
+print("📦 Loading Dashboard...")
+
+local Dashboard = LoadRemote(DashboardURL)
+
+if not Dashboard then
+    warn("❌ Dashboard gagal dimuat.")
+    return
+end
+
+print("✅ Dashboard berhasil dimuat.")
+print("")
+
+
+-- =========================================
 -- HEADER
 -- =========================================
 
@@ -111,7 +155,7 @@ Utils.PrintHeader(
 
 
 -- =========================================
--- LOAD GAME LIST
+-- GAME LIST
 -- =========================================
 
 print("📦 Loading GameList...")
@@ -128,7 +172,7 @@ print("")
 
 
 -- =========================================
--- DETECT CURRENT GAME
+-- DETECT GAME
 -- =========================================
 
 local GameID = game.GameId
@@ -142,17 +186,35 @@ print("")
 -- FIND GAME
 -- =========================================
 
-local GameURL = GameList[GameID]
+local GameData = GameList[GameID]
 
 
-if not GameURL then
+-- =========================================
+-- UNSUPPORTED GAME
+-- =========================================
+
+if not GameData then
 
     UI.Show(
         "⚡ THORHUB",
         "Game belum didukung."
     )
 
-    print("❌ Game belum terdaftar di ThorHub.")
+    Dashboard.Show(
+        Config,
+        GameID,
+        "Unknown",
+        {
+            Config = true,
+            Utils = true,
+            UI = true,
+            Dashboard = true,
+            GameList = true,
+            Game = false
+        }
+    )
+
+    print("❌ Game belum terdaftar.")
     print("Game ID:", GameID)
 
     return
@@ -163,17 +225,85 @@ end
 -- GAME FOUND
 -- =========================================
 
-UI.Show(
-    "⚡ THORHUB",
-    "Game berhasil ditemukan!"
+local GameURL
+local GameName
+
+
+-- Support format table:
+-- {
+--     Name = "Game A",
+--     URL = "https://..."
+-- }
+
+if type(GameData) == "table" then
+
+    GameURL = GameData.URL
+    GameName = GameData.Name or "Unknown"
+
+else
+
+    -- Support format lama:
+    -- [GameID] = "URL"
+
+    GameURL = GameData
+    GameName = "Supported Game"
+
+end
+
+
+-- =========================================
+-- SHOW GAME INFO
+-- =========================================
+
+Utils.PrintGame(
+    GameID,
+    GameName
 )
 
-print("✅ GAME FOUND")
-print("----------------------------------------")
-print("Game ID :", GameID)
-print("URL     :", GameURL)
-print("----------------------------------------")
-print("")
+
+-- =========================================
+-- GAME URL CHECK
+-- =========================================
+
+if not GameURL then
+
+    warn("❌ Game ditemukan tetapi URL tidak tersedia.")
+
+    Dashboard.Show(
+        Config,
+        GameID,
+        GameName,
+        {
+            Config = true,
+            Utils = true,
+            UI = true,
+            Dashboard = true,
+            GameList = true,
+            Game = false
+        }
+    )
+
+    return
+end
+
+
+-- =========================================
+-- SHOW DASHBOARD
+-- =========================================
+
+Dashboard.Show(
+    Config,
+    GameID,
+    GameName,
+    {
+        Config = true,
+        Utils = true,
+        UI = true,
+        Dashboard = true,
+        GameList = true,
+        Game = false
+    }
+)
 
 
 -- =========================================
@@ -181,11 +311,31 @@ print("")
 -- =========================================
 
 print("📦 Loading Game Module...")
+print("URL:", GameURL)
+print("")
+
 
 local GameModule = LoadRemote(GameURL)
 
+
 if not GameModule then
+
     warn("❌ Game Module gagal dimuat.")
+
+    Dashboard.Show(
+        Config,
+        GameID,
+        GameName,
+        {
+            Config = true,
+            Utils = true,
+            UI = true,
+            Dashboard = true,
+            GameList = true,
+            Game = false
+        }
+    )
+
     return
 end
 
@@ -204,19 +354,28 @@ print("Version :", Config.Version)
 print("Status  :", Config.Status)
 print("Creator :", Config.Creator)
 print("")
+print("Game    :", GameName)
 print("Game ID :", GameID)
+print("")
+print("🔥 Semua module berhasil dimuat.")
 print("========================================")
+print("")
 
 
 -- =========================================
--- FINAL UI
+-- FINAL DASHBOARD
 -- =========================================
 
-UI.Show(
-    "⚡ " .. Config.Name,
-    "System berhasil dimuat!"
+Dashboard.Show(
+    Config,
+    GameID,
+    GameName,
+    {
+        Config = true,
+        Utils = true,
+        UI = true,
+        Dashboard = true,
+        GameList = true,
+        Game = true
+    }
 )
-
-print("")
-print("🔥 ThorHub siap digunakan.")
-print("")
