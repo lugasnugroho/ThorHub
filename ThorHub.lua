@@ -31,6 +31,12 @@ local UIURL =
 local DashboardURL =
     BASE_URL .. "Modules/Dashboard.lua"
 
+local VersionURL =
+    BASE_URL .. "Modules/Version.lua"
+
+local LatestVersionURL =
+    BASE_URL .. "LatestVersion.lua"
+
 
 -- =========================================
 -- REMOTE LOADER
@@ -145,6 +151,58 @@ print("")
 
 
 -- =========================================
+-- VERSION MODULE
+-- =========================================
+
+print("📦 Loading Version Checker...")
+
+local Version = LoadRemote(VersionURL)
+
+if not Version then
+    warn("❌ Version Checker gagal dimuat.")
+    return
+end
+
+print("✅ Version Checker berhasil dimuat.")
+print("")
+
+
+-- =========================================
+-- CHECK LATEST VERSION
+-- =========================================
+
+print("🌐 Checking latest version...")
+
+local Latest = LoadRemote(LatestVersionURL)
+
+if Latest then
+
+    local VersionResult = Version.Check(
+        Config.Version,
+        Latest.Version
+    )
+
+    print("")
+
+    if VersionResult.Updated then
+
+        print("🟢 STATUS: UP TO DATE")
+
+    else
+
+        print("🟡 STATUS: UPDATE AVAILABLE")
+        print(VersionResult.Message)
+
+    end
+
+else
+
+    warn("⚠️ Tidak bisa mengecek versi terbaru.")
+
+end
+
+
+-- =========================================
 -- HEADER
 -- =========================================
 
@@ -209,6 +267,7 @@ if not GameData then
             Utils = true,
             UI = true,
             Dashboard = true,
+            Version = true,
             GameList = true,
             Game = false
         }
@@ -222,18 +281,12 @@ end
 
 
 -- =========================================
--- GAME FOUND
+-- GAME INFORMATION
 -- =========================================
 
 local GameURL
 local GameName
 
-
--- Support format table:
--- {
---     Name = "Game A",
---     URL = "https://..."
--- }
 
 if type(GameData) == "table" then
 
@@ -242,9 +295,6 @@ if type(GameData) == "table" then
 
 else
 
-    -- Support format lama:
-    -- [GameID] = "URL"
-
     GameURL = GameData
     GameName = "Supported Game"
 
@@ -252,7 +302,7 @@ end
 
 
 -- =========================================
--- SHOW GAME INFO
+-- GAME INFO
 -- =========================================
 
 Utils.PrintGame(
@@ -269,26 +319,12 @@ if not GameURL then
 
     warn("❌ Game ditemukan tetapi URL tidak tersedia.")
 
-    Dashboard.Show(
-        Config,
-        GameID,
-        GameName,
-        {
-            Config = true,
-            Utils = true,
-            UI = true,
-            Dashboard = true,
-            GameList = true,
-            Game = false
-        }
-    )
-
     return
 end
 
 
 -- =========================================
--- SHOW DASHBOARD
+-- DASHBOARD
 -- =========================================
 
 Dashboard.Show(
@@ -300,6 +336,7 @@ Dashboard.Show(
         Utils = true,
         UI = true,
         Dashboard = true,
+        Version = true,
         GameList = true,
         Game = false
     }
@@ -331,6 +368,7 @@ if not GameModule then
             Utils = true,
             UI = true,
             Dashboard = true,
+            Version = true,
             GameList = true,
             Game = false
         }
@@ -375,6 +413,7 @@ Dashboard.Show(
         Utils = true,
         UI = true,
         Dashboard = true,
+        Version = true,
         GameList = true,
         Game = true
     }
