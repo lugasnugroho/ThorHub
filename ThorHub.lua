@@ -1,9 +1,15 @@
-local ThorHub = {
-    Name = "ThorHub",
-    Version = "1.0.0",
-    Status = "Online"
-}
+local ConfigURL = "https://raw.githubusercontent.com/lugasnugroho/ThorHub/main/Config.lua"
 
-print("⚡ " .. ThorHub.Name)
-print("Version : " .. ThorHub.Version)
-print("Status  : " .. ThorHub.Status)
+local Source = game:HttpGet(ConfigURL)
+local Config = loadstring(Source)()
+
+print("================================")
+print("        ⚡ THORHUB ⚡")
+print("================================")
+print("Name    :", Config.Name)
+print("Version :", Config.Version)
+print("Status  :", Config.Status)
+print("Creator :", Config.Creator)
+print("--------------------------------")
+print(Config.Message)
+print("================================")
