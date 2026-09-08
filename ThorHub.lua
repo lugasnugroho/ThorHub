@@ -1,3 +1,9 @@
-print("⚡ ThorHub berhasil dijalankan!")
-print("Version: 1.0.0")
-print("Status: Online")
+local ThorHub = {
+    Name = "ThorHub",
+    Version = "1.0.0",
+    Status = "Online"
+}
+
+print("⚡ " .. ThorHub.Name)
+print("Version : " .. ThorHub.Version)
+print("Status  : " .. ThorHub.Status)
