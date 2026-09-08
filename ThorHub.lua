@@ -1,32 +1,32 @@
 local ConfigURL = "https://raw.githubusercontent.com/lugasnugroho/ThorHub/main/Config.lua"
 local GameListURL = "https://raw.githubusercontent.com/lugasnugroho/ThorHub/main/GameList.lua"
+local UtilsURL = "https://raw.githubusercontent.com/lugasnugroho/ThorHub/main/Modules/Utils.lua"
 
--- Ambil Config
+-- CONFIG
 local ConfigSource = game:HttpGet(ConfigURL)
 local Config = loadstring(ConfigSource)()
 
-print("================================")
-print("        ⚡ " .. Config.Name)
-print("================================")
-print("Version :", Config.Version)
-print("Status  :", Config.Status)
+-- UTILS
+local UtilsSource = game:HttpGet(UtilsURL)
+local Utils = loadstring(UtilsSource)()
 
--- Ambil GameList
+Utils.PrintHeader(Config.Name, Config.Version)
+
+-- GAME LIST
 local GameListSource = game:HttpGet(GameListURL)
 local GameList = loadstring(GameListSource)()
 
--- Cari game yang sedang dimainkan
 local GameID = game.GameId
 local GameURL = GameList[GameID]
 
-print("Game ID :", GameID)
+Utils.PrintGame(GameID, GameURL or "Unknown")
 
 if not GameURL then
-    print("ThorHub Not Support")
+    print("❌ Game belum didukung ThorHub.")
     return
 end
 
-print("Wait Bos")
+print("✅ Game ditemukan!")
 print("Loading game script...")
 
 local GameSource = game:HttpGet(GameURL)
